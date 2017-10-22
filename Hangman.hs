@@ -4,14 +4,18 @@ import Data.String.Utils (join)
 import Data.List.Split
 
 
-data Hangman = Hangman { word :: String, guesses :: Set Char }
+data Hangman = Hangman
+  { word :: String
+  , guesses :: Set Char
+  , orderedGuesses :: [Char]
+  }
 data GameStatus = Playing | Won | Lost deriving (Eq)
 
 
 gameStatus :: Hangman -> GameStatus
 gameStatus (Hangman {word = word, guesses = guesses})
   | correctGuesses `isSubsetOf` guesses = Won
-  | (size badGuesses) >= 5 = Lost
+  | size badGuesses >= 5 = Lost
   | otherwise = Playing
   where
     correctGuesses = Set.fromList word
@@ -24,8 +28,8 @@ view state =
 
 
 formattedGuesses :: Hangman -> String
-formattedGuesses (Hangman {guesses = guesses}) =
-  join " " $ splitOn "" $ Set.toList guesses
+formattedGuesses (Hangman {orderedGuesses = orderedGuesses}) =
+  join " " $ splitOn "" $ reverse orderedGuesses
 
 
 maskedWord :: Hangman -> String
@@ -47,8 +51,12 @@ update input state
 
 
 applyGuess :: Char -> Hangman -> Hangman
-applyGuess guess (Hangman {word = word, guesses = guesses}) =
-  Hangman {word = word, guesses = insert guess $ guesses}
+applyGuess guess (Hangman {word = word, guesses = guesses, orderedGuesses = orderedGuesses}) =
+  Hangman
+    { word = word
+    , guesses = insert guess guesses
+    , orderedGuesses = guess : orderedGuesses
+    }
 
 
 isGameOver :: Hangman -> Bool
@@ -70,5 +78,5 @@ runGame model view update = do
 main :: IO ()
 main = do
   word <- fmap head $ getArgs
-  let model = Hangman { word = word, guesses = empty }
+  let model = Hangman { word = word, guesses = empty, orderedGuesses = [] }
   runGame model view update

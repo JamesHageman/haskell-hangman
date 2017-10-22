@@ -2,6 +2,8 @@
 
 Just me playing around with Haskell things.
 
+Test with:
+
 ```
-runhaskell Hangman.hs [word]
+cabal run [word]
 ```

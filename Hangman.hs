@@ -1,3 +1,5 @@
+module Hangman where
+
 import System.Environment (getArgs)
 import Data.Set as Set
 import Data.String.Utils (join)
@@ -9,17 +11,26 @@ data Hangman = Hangman
   , guesses :: Set Char
   , orderedGuesses :: [Char]
   }
+
+
 data GameStatus = Playing | Won | Lost deriving (Eq)
+
+
+maxBadGuesses = 5
 
 
 gameStatus :: Hangman -> GameStatus
 gameStatus (Hangman {word = word, guesses = guesses})
   | correctGuesses `isSubsetOf` guesses = Won
-  | size badGuesses >= 5 = Lost
-  | otherwise = Playing
+  | size badGuesses >= maxBadGuesses    = Lost
+  | otherwise                           = Playing
   where
     correctGuesses = Set.fromList word
     badGuesses = guesses `difference` correctGuesses
+
+
+init :: String -> Hangman
+init word = Hangman word empty []
 
 
 view :: Hangman -> String
@@ -73,10 +84,3 @@ runGame model view update = do
       input <- getLine
       let newModel = update input model
       runGame newModel view update
-
-
-main :: IO ()
-main = do
-  word <- fmap head $ getArgs
-  let model = Hangman { word = word, guesses = empty, orderedGuesses = [] }
-  runGame model view update
